@@ -10,7 +10,7 @@ public class PlayerControl : MonoBehaviour
 
     public InputActionAsset actions;
     public float speed = 1f;
-    private InputAction xAxis;
+    private InputAction xAxis, jumpAction;
 
     void Awake()
     {
@@ -36,12 +36,24 @@ public class PlayerControl : MonoBehaviour
     private void MoveX()
     {
         float xMove = xAxis.ReadValue<float>();
+
         transform.position += speed * Time.deltaTime * xMove * transform.right;
 
     }
 
     private void MoveForward()
     {
-        transform.position += speed * Time.deltaTime * 1 * transform.forward;
+        transform.position += speed * Time.deltaTime * transform.forward;
     }
+    private void Jump() 
+    {
+        float jump = jumpAction.ReadValue<float>();
+        Debug.Log($"in the jump's data: {jump}");
+    }
+
+    void OnCollisionEnter(Collider other)
+    {
+        Debug.Log(other);
+    }
+    void OnTriggerEnter(Collider other) {}
 }

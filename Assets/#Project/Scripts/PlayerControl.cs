@@ -8,13 +8,17 @@ public class PlayerControl : MonoBehaviour
 
     //public InputActions actions;
 
+    [SerializeField] private float height;
     public InputActionAsset actions;
     public float speed = 1f;
     private InputAction xAxis, jumpAction;
+    private bool onTheFloor;
 
     void Awake()
     {
         xAxis = actions.FindActionMap("CubeActionsMap").FindAction("XAxis");
+        jumpAction = actions.FindActionMap("CubeActionsMap").FindAction("Jump");
+        onTheFloor = false;
     }
 
     void OnEnable()
@@ -31,6 +35,10 @@ public class PlayerControl : MonoBehaviour
     {
         MoveX();
         MoveForward();
+        if(onTheFloor)
+        {
+            Jump();
+        }
     }
 
     private void MoveX()
@@ -47,13 +55,21 @@ public class PlayerControl : MonoBehaviour
     }
     private void Jump() 
     {
-        float jump = jumpAction.ReadValue<float>();
-        Debug.Log($"in the jump's data: {jump}");
+        //Debug.Log(onTheFloor);
+            float jump = jumpAction.ReadValue<float>();
+            transform.position += speed * Time.deltaTime * (jump * height) * transform.up;
+            if (jump != 0) {
+                Debug.Log(jump);
+                onTheFloor = false;
+            }
     }
 
-    void OnCollisionEnter(Collider other)
+    void OnCollisionEnter(Collision other)
     {
-        Debug.Log(other);
+        if (other.gameObject.CompareTag("Floor"))
+        {
+            onTheFloor = true;
+            Debug.Log($"ON the floor {onTheFloor}"); 
+        }
     }
-    void OnTriggerEnter(Collider other) {}
 }

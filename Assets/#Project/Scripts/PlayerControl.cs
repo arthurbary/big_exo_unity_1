@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
 public class PlayerControl : MonoBehaviour
 {
@@ -13,12 +15,16 @@ public class PlayerControl : MonoBehaviour
     public float speed = 1f;
     private InputAction xAxis, jumpAction;
     private bool onTheFloor;
+    private Rigidbody rb;
+    private bool theEnd;
 
     void Awake()
     {
         xAxis = actions.FindActionMap("CubeActionsMap").FindAction("XAxis");
         jumpAction = actions.FindActionMap("CubeActionsMap").FindAction("Jump");
+        rb = GetComponent<Rigidbody>();
         onTheFloor = false;
+        theEnd = false;
     }
 
     void OnEnable()
@@ -33,12 +39,16 @@ public class PlayerControl : MonoBehaviour
 
     void Update()
     {
-        MoveX();
-        MoveForward();
-        if(onTheFloor)
+        if(!theEnd)
         {
-            Jump();
+            MoveX();
+            MoveForward();
         }
+        Jump();
+
+
+        FallFromFloor();
+        if(transform.position.y > 2) Debug.Log(transform.position.y);
     }
 
     private void MoveX()
@@ -57,11 +67,22 @@ public class PlayerControl : MonoBehaviour
     {
         //Debug.Log(onTheFloor);
             float jump = jumpAction.ReadValue<float>();
-            transform.position += speed * Time.deltaTime * (jump * height) * transform.up;
-            if (jump != 0) {
-                Debug.Log(jump);
+            if (jump != 0 && onTheFloor ) {
+                //transform.position += speed * Time.deltaTime * (jump * height) * transform.up;
                 onTheFloor = false;
+
+                var jumpSpeed = Mathf.Sqrt(2 * height * Mathf.Abs(Physics.gravity.y));
+                rb.velocity = new Vector3(rb.velocity.x, jumpSpeed, rb.velocity.z);
             }
+            rb.constraints = RigidbodyConstraints.FreezeRotation;
+    }
+
+    void FallFromFloor()
+    {
+        if(transform.position.y < 0)
+        {
+            SceneManager.LoadScene("SampleScene");
+        }
     }
 
     void OnCollisionEnter(Collision other)
@@ -69,7 +90,11 @@ public class PlayerControl : MonoBehaviour
         if (other.gameObject.CompareTag("Floor"))
         {
             onTheFloor = true;
-            Debug.Log($"ON the floor {onTheFloor}"); 
         }
+        if (other.gameObject.CompareTag("Finish"))
+        {
+            theEnd = true;
+        }
+
     }
 }
